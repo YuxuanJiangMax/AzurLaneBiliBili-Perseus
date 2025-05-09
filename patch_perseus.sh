@@ -37,7 +37,13 @@ chmod +x apkeep
 #     #cp AzurLane/com.YoStarJP.AzurLane.apk .
 # fi
 if [ ! -f "com.bilibili.AzurLane.apk" ]; then
-    cp blhx_9.5.11_0427_1_20250506_095207_d4e3f.apk com.bilibili.AzurLane.apk
+    if [ -f "blhx_9.5.11_0427_1_20250506_095207_d4e3f.apk" ]; then
+        cp blhx_9.5.11_0427_1_20250506_095207_d4e3f.apk com.bilibili.AzurLane.apk
+        echo "APK copied successfully."
+    else
+        echo "Source APK not found: blhx_9.5.11_0427_1_20250506_095207_d4e3f.apk"
+        exit 1
+    fi
 fi
 
 # Download Perseus
