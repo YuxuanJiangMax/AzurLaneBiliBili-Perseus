@@ -24,17 +24,20 @@ done
 chmod +x apkeep
 
 # Download Azur Lane
-if [ ! -f "com.bilibili.AzurLane.apk" ]; then
-    echo "Get Azur Lane apk"
+# if [ ! -f "com.bilibili.AzurLane.apk" ]; then
+#     echo "Get Azur Lane apk"
 
-    # eg: wget "your download link" -O "your packge name.apk" -q
-    #if you want to patch .xapk, change the suffix here to wget "your download link" -O "your packge name.xapk" -q
-    wget https://pkg.biligame.com/games/blhx_9.5.11_0427_1_20250506_095207_d4e3f.apk -O com.bilibili.AzurLane.apk -q
-    echo "apk downloaded !"
+#     # eg: wget "your download link" -O "your packge name.apk" -q
+#     #if you want to patch .xapk, change the suffix here to wget "your download link" -O "your packge name.xapk" -q
+#     wget https://pkg.biligame.com/games/blhx_9.5.11_0427_1_20250506_095207_d4e3f.apk -O com.bilibili.AzurLane.apk -q
+#     echo "apk downloaded !"
     
-    # if you can only download .xapk file uncomment 2 lines below. (delete the '#')
-    #unzip -o com.YoStarJP.AzurLane.xapk -d AzurLane
-    #cp AzurLane/com.YoStarJP.AzurLane.apk .
+#     # if you can only download .xapk file uncomment 2 lines below. (delete the '#')
+#     #unzip -o com.YoStarJP.AzurLane.xapk -d AzurLane
+#     #cp AzurLane/com.YoStarJP.AzurLane.apk .
+# fi
+if [ ! -f "com.bilibili.AzurLane.apk" ]; then
+    cp blhx_9.5.11_0427_1_20250506_095207_d4e3f.apk com.bilibili.AzurLane.apk
 fi
 
 # Download Perseus
