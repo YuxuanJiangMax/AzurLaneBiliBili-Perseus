@@ -1,0 +1,4 @@
+apkFileName: com.bilibili.AzurLane.apk
+doNotCompress:
+  - resources.arsc
+  - png

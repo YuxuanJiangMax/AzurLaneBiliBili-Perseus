@@ -8,25 +8,53 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      # 1. 拉取代码
       - uses: actions/checkout@v3
-      
-      - name: Setup Java JDK
-        uses: actions/setup-java@v3.3.0
+
+      # 2. 安装基础依赖（megatools、jq、Android工具链）
+      - name: 安装基础依赖
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y megatools jq
+
+      # 3. 安装 Android SDK 和构建工具（包含 zipalign/apksigner）
+      - name: 安装 Android SDK
+        uses: android-actions/setup-android@v2
+        with:
+          build-tools-version: 34.0.0  # 指定需要的构建工具版本
+
+      # 4. 安装 Java 17
+      - name: 安装 Java 17
+        uses: actions/setup-java@v3
         with:
           java-version: "17"
-          distribution: "adopt"
-          
-      - name: Make shell scripts executable
+          distribution: "temurin"
+
+      # 5. 构建 APK（运行 patch_perseus.sh）
+      - name: 构建 APK
         run: |
           chmod +x patch_perseus.sh
-          chmod +x zipalign_sign.sh
-          
-      - name: Build Perseus APK
-        run: ./patch_perseus.sh
+          ./patch_perseus.sh
 
-      - name: Zipalign and Sign Android release
-        run: ./zipalign_sign.sh
-                    
+      # 6. 检查 APK 文件是否生成
+      - name: 验证构建产物
+        run: |
+          echo "=== build 目录内容 ==="
+          ls -l build/
+          if [ ! -f build/com.bilibili.AzurLane.patched.apk ]; then
+            echo "❌ 错误：未找到 APK 文件！"
+            exit 1
+          fi
+
+      # 7. 签名 APK（传递密钥库密码）
+      - name: 签名 APK
+        env:
+          KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}  # 从 Secrets 读取密码
+        run: |
+          chmod +x zipalign_sign.sh
+          ./zipalign_sign.sh
+
+      # 8. 发布到 GitHub Release
       - uses: marvinpinto/action-automatic-releases@latest
         with:
           repo_token: "${{ secrets.GITHUB_TOKEN }}"
@@ -34,4 +62,4 @@ jobs:
           draft: true
           title: "Perseus Release v${{ env.PERSEUS_VERSION }}"
           files: |
-            build/*.apk
+            build/com.bilibili.AzurLane.signed.apk  # 指定签名后的文件
