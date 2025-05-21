@@ -8,6 +8,13 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      # 其他步骤...
+
+      - name: 安装 megatools
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y megatools
+
       # 1. 拉取代码
       - uses: actions/checkout@v3
 
