@@ -38,7 +38,7 @@ MAX_RETRIES=3
 RETRY_COUNT=0
 while [ $RETRY_COUNT -lt $MAX_RETRIES ]; do
     echo "尝试下载（第 $((RETRY_COUNT+1)) 次）"
-    megatools dl "$MEGA_LINK" --path ./ --no-progress -o "$APK_FILE"
+    megatools dl "$MEGA_LINK" --path ./ --no-progress -f "$APK_FILE"
     
     if [ $? -eq 0 ] && [ -f "$APK_FILE" ]; then
         echo "✅ APK 下载成功！"
@@ -50,31 +50,37 @@ while [ $RETRY_COUNT -lt $MAX_RETRIES ]; do
     fi
 done
 
-# 检查文件完整性
+# 检查文件是否存在
 if [ ! -f "$APK_FILE" ]; then
     echo "❌ 错误：APK 文件未下载成功！"
     exit 1
-elif ! unzip -tq "$APK_FILE"; then
-    echo "❌ 错误：APK 文件已损坏！请检查 Mega 链接。"
+fi
+
+# 4. 验证 APK 文件完整性
+echo "=== 检查 APK 文件完整性 ==="
+if ! unzip -tq "$APK_FILE"; then
+    echo "❌ 错误：APK 文件已损坏！请检查以下可能原因："
+    echo "1. Mega 链接对应的文件不完整"
+    echo "2. 网络问题导致下载中断"
     exit 1
 fi
 
-# 4. 反编译 APK
+# 5. 反编译 APK
 echo "=== 开始反编译 ==="
 java -jar apktool.jar d -f "$APK_FILE" -o "$DECOMPILED_DIR" || {
     echo "❌ 反编译失败！可能原因："
-    echo "1. APK 文件不兼容当前 Apktool 版本"
-    echo "2. APK 加密或已被修改"
+    echo "1. APK 文件加密或已修改"
+    echo "2. Apktool 版本不兼容（当前版本：2.11.1）"
     exit 1
 }
 
-# 5. 注入 Perseus
+# 6. 注入 Perseus
 if [ ! -d "Perseus" ]; then
     git clone https://github.com/Egoistically/Perseus
 fi
 cp -r Perseus/. "$DECOMPILED_DIR/lib/"
 
-# 6. 动态查找并修改 smali 代码
+# 7. 动态查找并修改 smali 代码
 UNITY_ACTIVITY=$(find "$DECOMPILED_DIR" -name "UnityPlayerActivity.smali" | head -1)
 if [ -z "$UNITY_ACTIVITY" ]; then
     echo "❌ 错误：未找到 UnityPlayerActivity.smali！"
@@ -83,12 +89,12 @@ fi
 
 sed -i "1i\\# Perseus Injection" "$UNITY_ACTIVITY"
 
-# 7. 重新构建 APK
+# 8. 重新构建 APK
 echo "=== 构建修改后的 APK ==="
 java -jar apktool.jar b "$DECOMPILED_DIR" -o "build/${APK_FILE%.apk}.patched.apk" || {
-    echo "❌ 构建失败！检查反编译目录。"
+    echo "❌ 构建失败！检查反编译目录是否存在错误。"
     exit 1
 }
 
-# 8. 生成版本号（示例）
+# 9. 生成版本号（示例）
 echo "PERSEUS_VERSION=$(date +%Y%m%d)" >> $GITHUB_ENV
